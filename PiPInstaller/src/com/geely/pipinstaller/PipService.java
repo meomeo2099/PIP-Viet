@@ -21,10 +21,10 @@ public final class PipService extends Service {
         super.onCreate();
         prefs = state(this);
         NotificationManager manager = getSystemService(NotificationManager.class);
-        manager.createNotificationChannel(new NotificationChannel("operation", "Configuração do PiP", NotificationManager.IMPORTANCE_LOW));
+        manager.createNotificationChannel(new NotificationChannel("operation", "Thiết lập cửa sổ PiP", NotificationManager.IMPORTANCE_LOW));
         PendingIntent open = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), PendingIntent.FLAG_IMMUTABLE);
         startForeground(1, new Notification.Builder(this, "operation").setSmallIcon(R.drawable.ic_pip)
-                .setContentTitle("PiP Control").setContentText("Verificando a configuração da central")
+                .setContentTitle("PIP Việt").setContentText("Đang kiểm tra màn hình")
                 .setContentIntent(open).setOngoing(true).build());
     }
 
@@ -35,37 +35,37 @@ public final class PipService extends Service {
                 if (INSTALLED.equals(action)) {
                     if (intent.getIntExtra("session", -2) != prefs.getInt("session", -1) || !prefs.getBoolean("pending", false)) return;
                     if (intent.getIntExtra("status", PackageInstaller.STATUS_FAILURE) != PackageInstaller.STATUS_SUCCESS)
-                        throw new IOException("O Android não autorizou a instalação automática do overlay. " + intent.getStringExtra("detail"));
+                        throw new IOException("Android không cho phép tự cài overlay. " + intent.getStringExtra("detail"));
                     prefs.edit().putInt("session", -1).commit();
                     activate(new PlatformBridge(this));
                 } else if (RECOVER.equals(action)) {
-                    recover("A operação anterior foi interrompida ou excedeu o tempo limite.");
+                    recover("Thao tác trước bị gián đoạn hoặc quá thời gian chờ.");
                 } else if (prefs.getBoolean("pending", false)) {
                     // A instalacao assincrona ja tem uma operacao em andamento.
                     return;
                 } else if (ENABLE.equals(action)) {
                     begin();
                     PlatformBridge bridge = new PlatformBridge(this);
-                    status("Verificando compatibilidade…");
+                    status("Đang kiểm tra tương thích…");
                     bridge.checkCompatibility();
                     if (bridge.installed()) {
                         bridge.checkInstalledOverlay();
-                        if (bridge.enabled()) { complete(true, "PiP já está habilitado."); return; }
+                        if (bridge.enabled()) { complete(true, "PiP đã được bật."); return; }
                         activate(bridge);
                     } else {
-                        status("Instalando o recurso de PiP…");
+                        status("Đang cài thành phần PiP…");
                         installOverlay();
                     }
                 } else if (DISABLE.equals(action)) {
                     begin();
                     PlatformBridge bridge = new PlatformBridge(this);
-                    if (!bridge.installed()) { complete(false, "A correção não está instalada."); return; }
+                    if (!bridge.installed()) { complete(false, "Chưa cài thành phần PiP."); return; }
                     // Reversao permitida mesmo quando o hash da SystemUI mudou.
                     prefs.edit().putBoolean("rollback", true).commit();
                     bridge.setEnabled(false);
-                    status("Aplicando a desativação…");
+                    status("Đang tắt PiP…");
                     bridge.restartAndVerify(false);
-                    complete(false, "PiP desabilitado. A configuração original foi restaurada.");
+                    complete(false, "Đã tắt PiP và khôi phục cấu hình ban đầu.");
                 } else {
                     inspect();
                 }
@@ -88,7 +88,7 @@ public final class PipService extends Service {
 
     private void inspect() throws Exception {
         prefs.edit().putBoolean("busy", true).apply();
-        if (prefs.getBoolean("rollback", false)) { recover("Há uma recuperação pendente."); return; }
+        if (prefs.getBoolean("rollback", false)) { recover("Có thao tác khôi phục chưa hoàn tất."); return; }
         PlatformBridge bridge = new PlatformBridge(this);
         boolean enabled = bridge.enabled();
         prefs.edit().putBoolean("enabled", enabled).putBoolean("privileged", true).apply();
@@ -96,8 +96,8 @@ public final class PipService extends Service {
             bridge.checkCompatibility();
             if (bridge.installed()) bridge.checkInstalledOverlay();
             prefs.edit().putBoolean("compatible", true).putString("message", enabled
-                    ? "Correção habilitada nesta central."
-                    : "Central compatível. Pronto para ativar o PiP.").apply();
+                    ? "PiP đang bật. Bạn có thể mở video và kiểm tra thao tác trên cửa sổ."
+                    : "Màn hình đáp ứng kiểm tra cấu hình. Có thể bật và kiểm tra PiP.").apply();
         } catch (Exception e) {
             prefs.edit().putBoolean("compatible", false).putString("message", message(e)).apply();
         }
@@ -106,7 +106,7 @@ public final class PipService extends Service {
 
     private void begin() {
         if (!prefs.edit().putBoolean("pending", true).putBoolean("busy", true).commit())
-            throw new IllegalStateException("Não foi possível salvar o estado de recuperação.");
+            throw new IllegalStateException("Không lưu được trạng thái khôi phục.");
         getSystemService(AlarmManager.class).setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP,
                 SystemClock.elapsedRealtime() + 90000, recoveryIntent());
     }
@@ -140,11 +140,11 @@ public final class PipService extends Service {
         bridge.checkCompatibility();
         bridge.checkInstalledOverlay();
         // Gravado antes da mutacao para permitir recuperacao apos morte do processo/boot.
-        if (!prefs.edit().putBoolean("rollback", true).commit()) throw new IOException("Falha ao preparar recuperação.");
-        status("Ativando PiP. A interface vai reiniciar brevemente…");
+        if (!prefs.edit().putBoolean("rollback", true).commit()) throw new IOException("Không chuẩn bị được dữ liệu khôi phục.");
+        status("Đang bật PiP. Giao diện hệ thống sẽ khởi động lại trong chốc lát…");
         bridge.setEnabled(true);
         bridge.restartAndVerify(true);
-        complete(true, "PiP habilitado. Abra um vídeo e teste os controles da janela.");
+        complete(true, "Đã bật PiP. Hãy mở video và thử kéo, chạm, phóng to cửa sổ.");
     }
 
     private void complete(boolean enabled, String message) {
@@ -162,16 +162,16 @@ public final class PipService extends Service {
         try {
             PlatformBridge bridge = new PlatformBridge(this);
             if (needsRollback) {
-                status("Restaurando a configuração original…");
+                status("Đang khôi phục cấu hình ban đầu…");
                 bridge.setEnabled(false);
                 bridge.restartAndVerify(false);
             }
-            complete(bridge.enabled(), reason + (needsRollback ? " A correção foi desativada por segurança." : " O overlay não foi ativado."));
+            complete(bridge.enabled(), reason + (needsRollback ? " Đã tự tắt PiP để khôi phục." : " Overlay chưa được bật."));
         } catch (Exception failure) {
             android.util.Log.e("PiPControl", "Recovery failed", failure);
             prefs.edit().putBoolean("pending", false).putBoolean("busy", false).putBoolean("rollback", needsRollback)
                     .putBoolean("compatible", false).putInt("session", -1).putString("message",
-                    reason + " Recuperação não confirmada: " + message(failure) + " Use Disable PiP ou reinicie a central.").commit();
+                    reason + " Chưa xác nhận khôi phục: " + message(failure) + " Hãy chọn Tắt PiP hoặc khởi động lại màn hình.").commit();
             // Uma nova tentativa pode ser feita pelo usuario; o boot tambem verifica rollback.
             getSystemService(AlarmManager.class).cancel(recoveryIntent());
         }

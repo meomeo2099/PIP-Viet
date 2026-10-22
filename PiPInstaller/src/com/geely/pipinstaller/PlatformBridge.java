@@ -15,27 +15,27 @@ final class PlatformBridge {
     static final String OVERLAY = "com.geely.ex2.mica.pipoverlayprobe";
     static final String SYSTEM_UI = "com.android.systemui";
     static final String SYSTEM_HASH = "0C9AB49B1CCF83133B3CBCAB1CC1D980E97C6472FE9D06F65E2BEF07D0737332";
-    static final String OVERLAY_HASH = "47F434857D7F2E175ECED4F591342667AA31B91A61636EEE0FFF19BAE68EF725";
+    static final String OVERLAY_HASH = BuildConfig.OVERLAY_SHA256;
     private final Context context;
     private final Class<?> overlayInterface;
     private final Object overlayManager;
 
     PlatformBridge(Context context) throws Exception {
         this.context = context;
-        if (Build.VERSION.SDK_INT != 28) throw new IOException("Esta versão foi preparada para Android 9.");
+        if (Build.VERSION.SDK_INT != 28) throw new IOException("Phiên bản này hỗ trợ Android 9. Cần cấu hình riêng cho Android khác.");
         ApplicationInfo info = context.getPackageManager().getApplicationInfo(SYSTEM_UI, 0);
         if (android.os.Process.myUid() / 100000 != 0)
-            throw new IOException("Instale e abra o app no usuário principal da central.");
+            throw new IOException("Hãy cài và mở ứng dụng bằng người dùng chính của màn hình.");
         if (info.uid != android.os.Process.myUid())
-            throw new IOException("A assinatura ou identidade do app não corresponde à SystemUI.");
+            throw new IOException("Chữ ký hoặc UID của ứng dụng chưa khớp với SystemUI của xe.");
         for (String permission : new String[]{"android.permission.INSTALL_PACKAGES",
                 "android.permission.CHANGE_OVERLAY_PACKAGES", "android.permission.DUMP"}) {
             if (context.checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED)
-                throw new IOException("Permissão de sistema indisponível: " + permission);
+                throw new IOException("Thiếu quyền hệ thống: " + permission);
         }
         IBinder binder = (IBinder) Class.forName("android.os.ServiceManager")
                 .getMethod("getService", String.class).invoke(null, "overlay");
-        if (binder == null) throw new IOException("Gerenciador de overlays indisponível.");
+        if (binder == null) throw new IOException("Không tìm thấy dịch vụ quản lý overlay.");
         overlayInterface = Class.forName("android.content.om.IOverlayManager");
         overlayManager = Class.forName("android.content.om.IOverlayManager$Stub")
                 .getMethod("asInterface", IBinder.class).invoke(null, binder);
@@ -45,12 +45,12 @@ final class PlatformBridge {
         ApplicationInfo info = context.getPackageManager().getApplicationInfo(SYSTEM_UI, 0);
         try (InputStream input = new FileInputStream(info.sourceDir)) {
             if (!SYSTEM_HASH.equals(sha256(input)))
-                throw new IOException("Esta versão da central ainda não foi validada. Nenhuma alteração foi feita.");
+                Compatibility.checkSystemUi(context, info);
         }
         if (!context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE))
-            throw new IOException("A central não declara suporte ao PiP.");
+            throw new IOException("Màn hình không khai báo hỗ trợ cửa sổ PiP.");
         try (InputStream input = context.getAssets().open("pip-overlay-platform.apk")) {
-            if (!OVERLAY_HASH.equals(sha256(input))) throw new IOException("O overlay incorporado não passou na verificação.");
+            if (!OVERLAY_HASH.equals(sha256(input))) throw new IOException("Gói overlay đính kèm không vượt qua kiểm tra toàn vẹn.");
         }
     }
 
@@ -63,7 +63,7 @@ final class PlatformBridge {
         ApplicationInfo info = context.getPackageManager().getApplicationInfo(OVERLAY, 0);
         try (InputStream input = new FileInputStream(info.sourceDir)) {
             if (!OVERLAY_HASH.equals(sha256(input)))
-                throw new IOException("Há outra versão do overlay instalada. Não será substituída automaticamente.");
+                throw new IOException("Đang có overlay khác chữ ký hoặc phiên bản. Hãy tắt và gỡ overlay cũ trước.");
         }
     }
 
@@ -76,7 +76,7 @@ final class PlatformBridge {
     void setEnabled(boolean value) throws Exception {
         boolean accepted = (Boolean) overlayInterface.getMethod("setEnabled", String.class, boolean.class, int.class)
                 .invoke(overlayManager, OVERLAY, value, 0);
-        if (!accepted || enabled() != value) throw new IOException("O sistema não confirmou a alteração do overlay.");
+        if (!accepted || enabled() != value) throw new IOException("Hệ thống chưa xác nhận thay đổi overlay.");
     }
 
     int systemUiPid() {
@@ -92,7 +92,7 @@ final class PlatformBridge {
     void restartAndVerify(boolean pipExpected) throws Exception {
         int oldPid = systemUiPid();
         if (oldPid <= 0 || oldPid == android.os.Process.myPid())
-            throw new IOException("Não foi possível identificar a SystemUI para reiniciá-la.");
+            throw new IOException("Không xác định được tiến trình SystemUI để khởi động lại.");
         android.os.Process.killProcess(oldPid);
         int currentPid = -1;
         for (int attempt = 0; attempt < 10; attempt++) {
@@ -101,16 +101,16 @@ final class PlatformBridge {
             if (currentPid > 0 && currentPid != oldPid) break;
         }
         if (currentPid <= 0 || currentPid == oldPid)
-            throw new IOException("A SystemUI não reiniciou automaticamente. Reinicie a central após desativar a correção.");
+            throw new IOException("SystemUI chưa tự khởi động lại. Hãy tắt PiP rồi khởi động lại màn hình.");
         Thread.sleep(1200);
         String dump = dumpSystemUi();
         boolean loaded = dump.contains("dumping service: com.android.systemui.pip.PipUI")
                 && dump.contains("PipManager");
         if (dump.trim().isEmpty() || !dump.contains("com.android.systemui/.SystemUIService"))
-            throw new IOException("Não foi possível verificar a SystemUI.");
-        if (loaded != pipExpected) throw new IOException("A SystemUI não carregou a configuração esperada.");
+            throw new IOException("Không kiểm tra được trạng thái SystemUI.");
+        if (loaded != pipExpected) throw new IOException("SystemUI chưa nạp cấu hình PiP như mong đợi.");
         Thread.sleep(1000);
-        if (systemUiPid() != currentPid) throw new IOException("A SystemUI reiniciou durante a verificação.");
+        if (systemUiPid() != currentPid) throw new IOException("SystemUI bị khởi động lại trong lúc kiểm tra.");
     }
 
     private String dumpSystemUi() throws Exception {
@@ -119,9 +119,9 @@ final class PlatformBridge {
                 "com.android.systemui/.SystemUIService").redirectErrorStream(true).redirectOutput(output).start();
         if (!process.waitFor(5, TimeUnit.SECONDS)) {
             process.destroyForcibly();
-            throw new IOException("Tempo limite ao verificar a SystemUI.");
+            throw new IOException("Hết thời gian chờ kiểm tra SystemUI.");
         }
-        if (process.exitValue() != 0) throw new IOException("O sistema recusou a verificação da SystemUI.");
+        if (process.exitValue() != 0) throw new IOException("Hệ thống từ chối kiểm tra SystemUI.");
         try (InputStream input = new FileInputStream(output); ByteArrayOutputStream result = new ByteArrayOutputStream()) {
             byte[] buffer = new byte[8192]; int count;
             while ((count = input.read(buffer)) != -1 && result.size() < 1024 * 1024) result.write(buffer, 0, count);

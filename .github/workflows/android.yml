@@ -1,0 +1,59 @@
+name: PIP Viet Android
+on:
+  push:
+    branches: [main, 'feat/**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      signed_apk:
+        description: 'Build APK bằng THT_SIGN_*'
+        type: boolean
+        default: true
+permissions:
+  contents: read
+jobs:
+  check:
+    name: Kiểm tra mã nguồn và biên dịch
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Cài Android SDK
+        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Kiểm tra phục hồi và tương thích
+        run: bash scripts/check.sh
+      - name: Biên dịch ứng dụng và overlay
+        run: bash scripts/build.sh --check
+  signed:
+    name: APK ký bằng THT_SIGN
+    if: github.event_name == 'workflow_dispatch' && inputs.signed_apk
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Build APK chính thức
+        env:
+          THT_SIGN_KEYSTORE_BASE64: ${{ secrets.THT_SIGN_KEYSTORE_BASE64 }}
+          THT_SIGN_STORE_PASSWORD: ${{ secrets.THT_SIGN_STORE_PASSWORD }}
+          THT_SIGN_KEY_ALIAS: ${{ secrets.THT_SIGN_KEY_ALIAS }}
+          THT_SIGN_KEY_PASSWORD: ${{ secrets.THT_SIGN_KEY_PASSWORD }}
+          THT_SIGN_CERT_SHA256: ${{ secrets.THT_SIGN_CERT_SHA256 }}
+        run: bash scripts/build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PIP-Viet-1.0.0
+          path: PiPInstaller/dist/*
+          if-no-files-found: error

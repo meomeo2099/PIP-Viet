@@ -7,7 +7,7 @@
     <uses-permission android:name="android.permission.DUMP" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <application android:label="PiP Control" android:icon="@drawable/ic_pip"
+    <application android:label="PIP Việt" android:icon="@drawable/ic_pip"
         android:theme="@android:style/Theme.Material.NoActionBar"
         android:allowBackup="false" android:supportsRtl="true">
         <activity android:name=".MainActivity" android:exported="true">
