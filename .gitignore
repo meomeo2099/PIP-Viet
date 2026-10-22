@@ -1,1 +1,8 @@
 !pip-overlay-platform.apk
+
+PiPInstaller/build-*/
+*.keystore
+*.jks
+*.p12
+*.pk8
+__pycache__/
