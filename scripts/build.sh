@@ -2,6 +2,7 @@
 set -euo pipefail
 # Both APKs are rebuilt and signed with the same supplied key.
 root="$(cd "$(dirname "$0")/.." && pwd)"
+if [[ "${1:-}" != '--check' ]]; then bash "$root/scripts/check-signing-env.sh"; fi
 sdk="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
 [[ -n "$sdk" ]] || { echo 'Cần đặt ANDROID_SDK_ROOT hoặc ANDROID_HOME.' >&2; exit 1; }
 bt="$sdk/build-tools/${BUILD_TOOLS_VERSION:-35.0.0}"
@@ -18,9 +19,6 @@ if [[ "${1:-}" == '--check' ]]; then
     -alias check -dname 'CN=CI Check Only' -keyalg RSA -keysize 2048 -validity 2 >/dev/null 2>&1
   keyfile="$build/check.jks"; export PIP_STORE_PASS=check-only PIP_KEY_PASS=check-only; aliasname=check
 else
-  for name in THT_SIGN_KEYSTORE_BASE64 THT_SIGN_STORE_PASSWORD THT_SIGN_KEY_ALIAS THT_SIGN_KEY_PASSWORD THT_SIGN_CERT_SHA256; do
-    [[ -n "${!name:-}" ]] || { echo "Thiếu $name; không ký bằng khóa khác." >&2; exit 1; }
-  done
   printf '%s' "$THT_SIGN_KEYSTORE_BASE64" | base64 --decode > "$build/sign.jks"
   chmod 600 "$build/sign.jks"
   keyfile="$build/sign.jks"; aliasname="$THT_SIGN_KEY_ALIAS"
@@ -57,12 +55,12 @@ javac --release 8 -encoding UTF-8 -classpath "$android" -d "$build/classes" @"$b
 jar cf "$build/classes.jar" -C "$build/classes" .
 java -Xmx512m -cp "$bt/lib/d8.jar" com.android.tools.r8.D8 --release --min-api 28 --lib "$android" --output "$build/dex" "$build/classes.jar"
 (cd "$build/dex" && "$bt/aapt" add "$build/resources.apk" classes.dex)
-sign_apk "$build/resources.apk" "$build/PIP-Viet-1.0.0.apk"
+sign_apk "$build/resources.apk" "$build/PIP-Viet-1.0.1.apk"
 if [[ "$check_mode" == true ]]; then
   echo 'Đã biên dịch và kiểm tra cả hai APK. Không xuất APK dùng khóa kiểm tra.'
 else
-  cp "$build/PIP-Viet-1.0.0.apk" "$root/PiPInstaller/dist/PIP-Viet-1.0.0.apk"
+  cp "$build/PIP-Viet-1.0.1.apk" "$root/PiPInstaller/dist/PIP-Viet-1.0.1.apk"
   cp "$build/assets/pip-overlay-platform.apk" "$root/PiPInstaller/dist/pip-overlay-platform.apk"
-  (cd "$root/PiPInstaller/dist" && sha256sum PIP-Viet-1.0.0.apk pip-overlay-platform.apk > SHA256SUMS)
-  echo 'Đã tạo PiPInstaller/dist/PIP-Viet-1.0.0.apk bằng THT_SIGN_*.'
+  (cd "$root/PiPInstaller/dist" && sha256sum PIP-Viet-1.0.1.apk pip-overlay-platform.apk > SHA256SUMS)
+  echo 'Đã tạo PiPInstaller/dist/PIP-Viet-1.0.1.apk bằng THT_SIGN_*.'
 fi

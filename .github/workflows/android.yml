@@ -31,6 +31,13 @@ jobs:
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
       - name: Kiểm tra phục hồi và tương thích
         run: bash scripts/check.sh
+      - name: Kiểm tra giao tiếp Dashboard trên Android 9 mô phỏng
+        env:
+          PIP_QA_DEPS: ${{ runner.temp }}/pip-native-deps
+          COMPILE_API: '35'
+        run: |
+          mvn -B -q -f tests/native/pom.xml org.apache.maven.plugins:maven-dependency-plugin:3.8.1:copy-dependencies "-DoutputDirectory=$PIP_QA_DEPS"
+          bash scripts/test-dashboard-api.sh
       - name: Biên dịch ứng dụng và overlay
         run: bash scripts/build.sh --check
   signed:
@@ -41,6 +48,14 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - name: Kiểm tra đủ cấu hình THT_SIGN trước khi cài SDK
+        env:
+          THT_SIGN_KEYSTORE_BASE64: ${{ secrets.THT_SIGN_KEYSTORE_BASE64 }}
+          THT_SIGN_STORE_PASSWORD: ${{ secrets.THT_SIGN_STORE_PASSWORD }}
+          THT_SIGN_KEY_ALIAS: ${{ secrets.THT_SIGN_KEY_ALIAS }}
+          THT_SIGN_KEY_PASSWORD: ${{ secrets.THT_SIGN_KEY_PASSWORD }}
+          THT_SIGN_CERT_SHA256: ${{ secrets.THT_SIGN_CERT_SHA256 }}
+        run: bash scripts/check-signing-env.sh
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -60,6 +75,6 @@ jobs:
         run: bash scripts/build.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: PIP-Viet-1.0.0
+          name: PIP-Viet-1.0.1
           path: PiPInstaller/dist/*
           if-no-files-found: error

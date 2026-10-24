@@ -23,3 +23,13 @@ manifest = ET.parse(root / 'PiPInstaller/AndroidManifest.xml').getroot()
 assert manifest.get(android + 'sharedUserId') == 'android.uid.systemui'
 assert manifest.find('uses-sdk').get(android + 'minSdkVersion') == '28'
 print('PASS: service state machine, install/boot receivers, resource XML, overlay services and shared UID')
+
+app = manifest.find('application')
+api = app.find("service[@" + android + "name='.DashboardApiService']")
+assert api is not None and api.get(android + 'exported') == 'true'
+meta = app.find("meta-data[@" + android + "name='vn.tht.pip.API_VERSION']")
+assert meta is not None and meta.get(android + 'value') == '1'
+for component in app.findall('service') + app.findall('receiver'):
+    if component.get(android + 'name') != '.DashboardApiService':
+        assert component.get(android + 'exported') == 'false', 'Only the authenticated Dashboard API may be exported'
+print('PASS: Dashboard API metadata and private installer/recovery components')

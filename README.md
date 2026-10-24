@@ -6,7 +6,7 @@ Dựa trên [magnolima/geely-ex2-pip-overlay](https://github.com/magnolima/geely
 
 ## Sử dụng
 
-1. Cài `PIP-Viet-1.0.0.apk`, mở **PIP Việt** khi xe đang đỗ.
+1. Cài `PIP-Viet-1.0.1.apk`, mở **PIP Việt** khi xe đang đỗ.
 2. Đợi kiểm tra tương thích. Chọn **Bật PiP** khi nút được cho phép.
 3. Đợi giao diện hệ thống khởi động lại, mở ứng dụng có hỗ trợ PiP, kiểm tra kéo/chạm/phóng to và đóng cửa sổ.
 4. Chọn **Tắt PiP / Khôi phục** để trả về cấu hình ban đầu. Thực hiện bước này trước khi gỡ ứng dụng.
@@ -49,7 +49,11 @@ Thêm năm **repository secrets** cho chính repo PIP-Viet:
 
 Secrets của repo khác không tự xuất hiện trong repo này. Không dán giá trị khóa vào source, issue hoặc nhật ký.
 
-Vào **Actions → PIP Viet Android → Run workflow**, chọn nhánh cần build và bật `signed_apk`. Tải artifact `PIP-Viet-1.0.0` sau khi hai job thành công. Nếu thiếu secret hoặc chứng chỉ không khớp, build dừng; không tự dùng khóa khác.
+Để ký cùng các app THT, dùng cùng bộ giá trị của năm biến trên trong repo PIP-Viet, hoặc cấp quyền repo này cho organization secrets tương ứng. Không tạo khóa mới chỉ để đổi tên biến. Script Linux/WSL, trình gọi Windows và workflow đều dùng đúng các tên `THT_SIGN_*`; app và overlay được ký cùng khóa, đối chiếu SHA-256 trước khi xuất tệp. Job ký kiểm tra đủ biến trước khi cài SDK và chỉ thông báo tên biến thiếu, không in giá trị.
+
+PIP Việt có shared UID SystemUI: chứng thư dùng chung vẫn phải được firmware xe chấp nhận cho UID đó. Cùng tên biến hoặc cùng khóa Dashboard chưa chứng minh điều này. GitHub không cho đọc lại giá trị secret đã lưu; cần đối chiếu chứng thư APK đã ký với app đang cài và SystemUI trước khi cập nhật trên xe.
+
+Vào **Actions → PIP Viet Android → Run workflow**, chọn nhánh cần build và bật `signed_apk`. Tải artifact `PIP-Viet-1.0.1` sau khi hai job thành công. Nếu thiếu secret hoặc chứng chỉ không khớp, build dừng; không tự dùng khóa khác.
 
 CI của push/PR chỉ biên dịch bằng khóa tạm để kiểm tra, không phát hành APK dùng khóa tạm. Không tự tạo GitHub Release.
 
@@ -80,3 +84,7 @@ Nếu xe đã có overlay từ bản gốc, hãy tắt overlay và gỡ gói ove
 `scripts/check.sh` kiểm thử chặn ROM có dịch vụ riêng, thiếu/thay/thứ tự dịch vụ khác và ROM đã có PipUI. Kiểm tra đối chiếu cũng bảo đảm mã máy trạng thái của `PipService` chỉ đổi chuỗi văn bản; hai receiver và danh sách tài nguyên được giữ nguyên.
 
 Biên dịch và kiểm thử trên máy/CI không chứng minh hoạt động trên xe. Cần thử bật, kéo/chạm cửa sổ, tắt/khôi phục và khởi động lại trên từng ROM trước khi xác nhận hỗ trợ.
+
+## Công tắc từ THT Dashboard — API1
+
+Có giao tiếp cho Dashboard Car: bật để PIP Việt tự kiểm tra/cài/bật thành phần PiP, tắt để khôi phục bằng luồng gốc. Chỉ nhận Dashboard đúng package/chữ ký; không bỏ kiểm tương thích hoặc quyền SystemUI. Cần cập nhật cả PIP Việt và Dashboard. [Giao thức và kiểm chứng](docs/DASHBOARD-API.md).
