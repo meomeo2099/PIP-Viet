@@ -1,0 +1,5 @@
+package com.geely.pipinstaller;
+public final class DashboardCallerPolicyTest {
+ static int checks;static void check(boolean value){if(!value)throw new AssertionError();checks++;}
+ public static void main(String[] args){check(DashboardCallerPolicy.allowed("vn.tht.ex2.car",DashboardCallerPolicy.CERT,false));check(DashboardCallerPolicy.allowed("vn.tht.ex2.car.platformtest",DashboardCallerPolicy.CERT.toLowerCase(java.util.Locale.ROOT),false));check(DashboardCallerPolicy.allowed("vn.tht.ex2.car","other",true));check(!DashboardCallerPolicy.allowed("vn.tht.ex2.car","other",false));check(!DashboardCallerPolicy.allowed("untrusted.app",DashboardCallerPolicy.CERT,true));check(!DashboardCallerPolicy.allowed(null,null,true));for(int command=1;command<=3;command++)check(DashboardCallerPolicy.request("test_request_1",command));check(!DashboardCallerPolicy.request("test_request_1",4));check(!DashboardCallerPolicy.request("short",2));check(!DashboardCallerPolicy.request("bad request ://",2));check(!DashboardCallerPolicy.request(null,1));System.out.println("PASS "+checks+" Dashboard API caller/request checks");}
+}

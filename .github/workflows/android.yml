@@ -31,6 +31,13 @@ jobs:
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
       - name: Kiểm tra phục hồi và tương thích
         run: bash scripts/check.sh
+      - name: Kiểm tra giao tiếp Dashboard trên Android 9 mô phỏng
+        env:
+          PIP_QA_DEPS: ${{ runner.temp }}/pip-native-deps
+          COMPILE_API: '35'
+        run: |
+          mvn -B -q -f tests/native/pom.xml org.apache.maven.plugins:maven-dependency-plugin:3.8.1:copy-dependencies "-DoutputDirectory=$PIP_QA_DEPS"
+          bash scripts/test-dashboard-api.sh
       - name: Biên dịch ứng dụng và overlay
         run: bash scripts/build.sh --check
   signed:

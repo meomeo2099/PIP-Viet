@@ -80,3 +80,7 @@ Nếu xe đã có overlay từ bản gốc, hãy tắt overlay và gỡ gói ove
 `scripts/check.sh` kiểm thử chặn ROM có dịch vụ riêng, thiếu/thay/thứ tự dịch vụ khác và ROM đã có PipUI. Kiểm tra đối chiếu cũng bảo đảm mã máy trạng thái của `PipService` chỉ đổi chuỗi văn bản; hai receiver và danh sách tài nguyên được giữ nguyên.
 
 Biên dịch và kiểm thử trên máy/CI không chứng minh hoạt động trên xe. Cần thử bật, kéo/chạm cửa sổ, tắt/khôi phục và khởi động lại trên từng ROM trước khi xác nhận hỗ trợ.
+
+## Công tắc từ THT Dashboard — API1
+
+Có giao tiếp cho Dashboard Car: bật để PIP Việt tự kiểm tra/cài/bật thành phần PiP, tắt để khôi phục bằng luồng gốc. Chỉ nhận Dashboard đúng package/chữ ký; không bỏ kiểm tương thích hoặc quyền SystemUI. Cần cập nhật cả PIP Việt và Dashboard. [Giao thức và kiểm chứng](docs/DASHBOARD-API.md).
