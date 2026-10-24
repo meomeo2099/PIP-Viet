@@ -75,6 +75,6 @@ jobs:
         run: bash scripts/build.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: PIP-Viet-1.0.0
+          name: PIP-Viet-1.0.1
           path: PiPInstaller/dist/*
           if-no-files-found: error

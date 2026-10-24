@@ -6,7 +6,7 @@ Dựa trên [magnolima/geely-ex2-pip-overlay](https://github.com/magnolima/geely
 
 ## Sử dụng
 
-1. Cài `PIP-Viet-1.0.0.apk`, mở **PIP Việt** khi xe đang đỗ.
+1. Cài `PIP-Viet-1.0.1.apk`, mở **PIP Việt** khi xe đang đỗ.
 2. Đợi kiểm tra tương thích. Chọn **Bật PiP** khi nút được cho phép.
 3. Đợi giao diện hệ thống khởi động lại, mở ứng dụng có hỗ trợ PiP, kiểm tra kéo/chạm/phóng to và đóng cửa sổ.
 4. Chọn **Tắt PiP / Khôi phục** để trả về cấu hình ban đầu. Thực hiện bước này trước khi gỡ ứng dụng.
@@ -53,7 +53,7 @@ Secrets của repo khác không tự xuất hiện trong repo này. Không dán 
 
 PIP Việt có shared UID SystemUI: chứng thư dùng chung vẫn phải được firmware xe chấp nhận cho UID đó. Cùng tên biến hoặc cùng khóa Dashboard chưa chứng minh điều này. GitHub không cho đọc lại giá trị secret đã lưu; cần đối chiếu chứng thư APK đã ký với app đang cài và SystemUI trước khi cập nhật trên xe.
 
-Vào **Actions → PIP Viet Android → Run workflow**, chọn nhánh cần build và bật `signed_apk`. Tải artifact `PIP-Viet-1.0.0` sau khi hai job thành công. Nếu thiếu secret hoặc chứng chỉ không khớp, build dừng; không tự dùng khóa khác.
+Vào **Actions → PIP Viet Android → Run workflow**, chọn nhánh cần build và bật `signed_apk`. Tải artifact `PIP-Viet-1.0.1` sau khi hai job thành công. Nếu thiếu secret hoặc chứng chỉ không khớp, build dừng; không tự dùng khóa khác.
 
 CI của push/PR chỉ biên dịch bằng khóa tạm để kiểm tra, không phát hành APK dùng khóa tạm. Không tự tạo GitHub Release.
 

@@ -55,12 +55,12 @@ javac --release 8 -encoding UTF-8 -classpath "$android" -d "$build/classes" @"$b
 jar cf "$build/classes.jar" -C "$build/classes" .
 java -Xmx512m -cp "$bt/lib/d8.jar" com.android.tools.r8.D8 --release --min-api 28 --lib "$android" --output "$build/dex" "$build/classes.jar"
 (cd "$build/dex" && "$bt/aapt" add "$build/resources.apk" classes.dex)
-sign_apk "$build/resources.apk" "$build/PIP-Viet-1.0.0.apk"
+sign_apk "$build/resources.apk" "$build/PIP-Viet-1.0.1.apk"
 if [[ "$check_mode" == true ]]; then
   echo 'Đã biên dịch và kiểm tra cả hai APK. Không xuất APK dùng khóa kiểm tra.'
 else
-  cp "$build/PIP-Viet-1.0.0.apk" "$root/PiPInstaller/dist/PIP-Viet-1.0.0.apk"
+  cp "$build/PIP-Viet-1.0.1.apk" "$root/PiPInstaller/dist/PIP-Viet-1.0.1.apk"
   cp "$build/assets/pip-overlay-platform.apk" "$root/PiPInstaller/dist/pip-overlay-platform.apk"
-  (cd "$root/PiPInstaller/dist" && sha256sum PIP-Viet-1.0.0.apk pip-overlay-platform.apk > SHA256SUMS)
-  echo 'Đã tạo PiPInstaller/dist/PIP-Viet-1.0.0.apk bằng THT_SIGN_*.'
+  (cd "$root/PiPInstaller/dist" && sha256sum PIP-Viet-1.0.1.apk pip-overlay-platform.apk > SHA256SUMS)
+  echo 'Đã tạo PiPInstaller/dist/PIP-Viet-1.0.1.apk bằng THT_SIGN_*.'
 fi
