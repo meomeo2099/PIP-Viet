@@ -26,6 +26,8 @@ Chưa nghiệm thu IPC/UID/PackageInstaller/khôi phục trên IHU thật. Khôn
 
 ## Kết quả24/10/2026
 
+Rà soát ký theo yêu cầu dùng chung `THT_SIGN_*`: Linux/WSL, Windows và workflow đều dùng năm biến cùng tên; app và overlay cùng khóa và kiểm fingerprint trước xuất. Thêm kiểm tra môi trường trước SDK/build để báo đủ các tên biến thiếu, không in giá trị. Kiểm tra không tải khóa từ repo khác và không đổi signer/UID/package. API liệt kê secrets của cả PIP-Viet và Dashboard trả403 `Resource not accessible by integration`; chưa xác minh các repo đang có cùng giá trị, chưa sửa GitHub secrets hoặc tạo APK chính thức. Cùng tên biến không chứng minh chứng thư phù hợp SystemUI trên xe.
+
 [Dashboard PR103](https://github.com/meomeo2099/THT-Dashboard/pull/103), [PIP Việt PR2](https://github.com/meomeo2099/PIP-Viet/pull/2). Helper runtime `feb8c181df4ca9989978e660fe485db7b66d004f`:5test Robolectric,13caller/request checks, compatibility/source-hash và SDK34 build --check helper/overlay đạt. Dashboard runtime `a80f78a6d013ec6b1b882a8b82436fe58dfa0e3f`: Car/Phone build,38test native, Core31/PIP26/language35-768cặp và instrumentation compile đạt. Chưa thử IHU hoặc giao APK.
 
 CI helper [push40068360812](https://github.com/meomeo2099/PIP-Viet/actions/runs/40068360812), [PR40068369952](https://github.com/meomeo2099/PIP-Viet/actions/runs/40068369952) dừng trước mọi bước; annotations của2job xác nhận Actions budget chặn chạy. Dashboard Preview40068538317/Native40068540862 cũng bị budget trước bước chạy. Không nhận CI đạt; cả2PR draft/chưa merge. Commit sau runtime chỉ ghi tài liệu.

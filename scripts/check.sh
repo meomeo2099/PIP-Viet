@@ -2,6 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 bash -n scripts/build.sh
+bash -n scripts/check-signing-env.sh
 build="$(mktemp -d)"
 trap 'rm -rf "$build"' EXIT
 javac --release 8 -encoding UTF-8 -d "$build" PiPInstaller/src/com/geely/pipinstaller/CompatibilityPolicy.java tests/CompatibilityPolicyTest.java

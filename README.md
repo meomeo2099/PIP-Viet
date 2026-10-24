@@ -49,6 +49,10 @@ Thêm năm **repository secrets** cho chính repo PIP-Viet:
 
 Secrets của repo khác không tự xuất hiện trong repo này. Không dán giá trị khóa vào source, issue hoặc nhật ký.
 
+Để ký cùng các app THT, dùng cùng bộ giá trị của năm biến trên trong repo PIP-Viet, hoặc cấp quyền repo này cho organization secrets tương ứng. Không tạo khóa mới chỉ để đổi tên biến. Script Linux/WSL, trình gọi Windows và workflow đều dùng đúng các tên `THT_SIGN_*`; app và overlay được ký cùng khóa, đối chiếu SHA-256 trước khi xuất tệp. Job ký kiểm tra đủ biến trước khi cài SDK và chỉ thông báo tên biến thiếu, không in giá trị.
+
+PIP Việt có shared UID SystemUI: chứng thư dùng chung vẫn phải được firmware xe chấp nhận cho UID đó. Cùng tên biến hoặc cùng khóa Dashboard chưa chứng minh điều này. GitHub không cho đọc lại giá trị secret đã lưu; cần đối chiếu chứng thư APK đã ký với app đang cài và SystemUI trước khi cập nhật trên xe.
+
 Vào **Actions → PIP Viet Android → Run workflow**, chọn nhánh cần build và bật `signed_apk`. Tải artifact `PIP-Viet-1.0.0` sau khi hai job thành công. Nếu thiếu secret hoặc chứng chỉ không khớp, build dừng; không tự dùng khóa khác.
 
 CI của push/PR chỉ biên dịch bằng khóa tạm để kiểm tra, không phát hành APK dùng khóa tạm. Không tự tạo GitHub Release.

@@ -48,6 +48,14 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - name: Kiểm tra đủ cấu hình THT_SIGN trước khi cài SDK
+        env:
+          THT_SIGN_KEYSTORE_BASE64: ${{ secrets.THT_SIGN_KEYSTORE_BASE64 }}
+          THT_SIGN_STORE_PASSWORD: ${{ secrets.THT_SIGN_STORE_PASSWORD }}
+          THT_SIGN_KEY_ALIAS: ${{ secrets.THT_SIGN_KEY_ALIAS }}
+          THT_SIGN_KEY_PASSWORD: ${{ secrets.THT_SIGN_KEY_PASSWORD }}
+          THT_SIGN_CERT_SHA256: ${{ secrets.THT_SIGN_CERT_SHA256 }}
+        run: bash scripts/check-signing-env.sh
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
